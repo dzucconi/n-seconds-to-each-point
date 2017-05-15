@@ -1,5 +1,6 @@
-import Velocity from 'velocity-animate';
 import parameters from 'queryparams';
+import Velocity from 'velocity-animate';
+
 import * as dom from './lib/dom';
 import times from './lib/times';
 
@@ -11,9 +12,15 @@ const DOM = {
 
 const CONFIG = parameters({
   amount: 16,
+  interval: 1000,
+  color: 'gray',
+  'background-color': 'black',
 });
 
-export default () => {
+const init = () => {
+  DOM.app.innerHTML = '';
+  DOM.app.style.backgroundColor = CONFIG['background-color'];
+
   const size = DOM.app.offsetHeight / CONFIG.amount;
 
   times(CONFIG.amount)(i => {
@@ -24,7 +31,7 @@ export default () => {
       'height': `${size}px`,
       'top': `${i * size}px`,
       'background-color': 'red',
-      'background-image': `radial-gradient(${size}px at 50% 50%, white 0%, red 10%, black 50%)`
+      'background-image': `radial-gradient(${size}px at 50% 50%, white 0%, ${CONFIG.color} 10%, ${CONFIG['background-color']} 50%)`
     };
 
     style[odd ? 'left' : 'right'] = 0;
@@ -52,7 +59,13 @@ export default () => {
 
     Velocity(element, props, {
       loop: true,
-      duration: (i + 1) * 1000,
+      duration: (i + 1) * CONFIG.interval,
     });
   });
+};
+
+export default () => {
+  init();
+
+  window.addEventListener('resize', init);
 };
