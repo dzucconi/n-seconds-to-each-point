@@ -3,9 +3,11 @@ export const tag = (type, { id, klass, style } = {}, html) => {
 
   if (id) el.id = id;
   if (klass) el.className = klass;
-  if (style) el.style = Object.keys(style).reduce((memo, key) => {
-    return memo + `${key}: ${style[key]};`;
-  }, '');
+  if (style) {
+    Object.keys(style).map(key => {
+      el.style[key] = style[key];
+    });
+  }
 
 
   if (html) el.innerHTML = html;
