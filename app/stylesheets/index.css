@@ -1,0 +1,28 @@
+html {
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.app {
+  position: relative;
+  width: 640px;
+  height: 640px;
+  background-color: black;
+}
+
+.element {
+  position: absolute;
+  background-color: white;
+  border-radius: 50%;
+}
