@@ -1,8 +1,9 @@
 import parameters from 'queryparams';
 import Velocity from 'velocity-animate';
+import 'velocity-animate/velocity.ui';
 
 import * as dom from './lib/dom';
-import times from './lib/times';
+import Deferred from './lib/deferred';
 
 window.parameters = parameters;
 
@@ -11,56 +12,100 @@ const DOM = {
 };
 
 const CONFIG = parameters({
-  amount: 16,
-  interval: 1000,
+  scalar: 20,
+  interval: 10000,
   color: 'gray',
   'background-color': 'black',
+  ops: [
+    // ['nw', 'se', 'nw'],
+    // ['sw', 'ne', 'sw'],
+    // ['se', 'nw', 'se'],
+    // ['ne', 'sw', 'ne'],
+    ['nw', 'sw', 'se', 'ne', 'nw'],
+    ['sw', 'se', 'ne', 'nw', 'sw'],
+    ['se', 'ne', 'nw', 'sw', 'se'],
+    ['ne', 'nw', 'sw', 'se', 'ne'],
+  ]
 });
+
+const merge = (...xs) => Object.assign({}, ...xs);
+
+const rotate = (xs, n) =>
+  xs.slice(n, xs.length).concat(xs.slice(0, n));
+
+const queue = element => op => {
+  const dfd = new Deferred;
+  return {
+    dfd,
+    options: {
+      e: element,
+      p: op,
+      o: {
+        easing: 'linear',
+        duration: CONFIG.interval,
+        complete: dfd.resolve,
+      },
+    },
+  };
+};
+
+const stage = (style, sequence) => {
+  const element = dom.tag('div', {
+    klass: 'element',
+    style,
+  });
+
+  DOM.app.appendChild(element);
+
+  const run = ops => {
+    const operational = sequence.map(queue(element));
+    Velocity.RunSequence(operational.map(({ options }) => options));
+    Promise.all(operational.map(({ dfd: { promise } }) => promise))
+      .then(() => run(ops));
+  };
+
+  run(sequence);
+};
 
 const init = () => {
   DOM.app.innerHTML = '';
   DOM.app.style.backgroundColor = CONFIG['background-color'];
 
-  const size = DOM.app.offsetHeight / CONFIG.amount;
+  const significant = Math.min(window.innerHeight, window.innerWidth);
+  const size = significant * (CONFIG.scalar / 100);
 
-  times(CONFIG.amount)(i => {
-    const odd = i % 2 === 0;
+  const primary = {
+    n: { top: '0%', translateY: '0%' },
+    s: { top: '100%', translateY: '-100%' },
+    e: { left: '100%', translateX: '-100%' },
+    w: { left: '0%', translateX: '0%' },
+  };
 
-    const style = {
-      'width': `${size}px`,
-      'height': `${size}px`,
-      'top': `${i * size}px`,
-      'background-color': 'red',
-      'background-image': `radial-gradient(${size}px at 50% 50%, white 0%, ${CONFIG.color} 10%, ${CONFIG['background-color']} 50%)`
-    };
+  const secondary = {
+    ne: merge(primary.n, primary.e),
+    nw: merge(primary.n, primary.w),
+    se: merge(primary.s, primary.e),
+    sw: merge(primary.s, primary.w),
+  };
 
-    style[odd ? 'left' : 'right'] = 0;
+  const dirs = merge(primary, secondary);
 
-    const element = dom.tag('div', {
-      klass: 'element',
-      style,
-    });
+  const corners = {
+    nw: { top: 0, left: 0 },
+    sw: { bottom: 0, left: 0 },
+    se: { bottom: 0, right: 0 },
+    ne: { top: 0, right: 0 },
+  };
 
-    DOM.app.appendChild(element);
+  const base = {
+    'width': `${size}px`,
+    'height': `${size}px`,
+    'background-color': 'transparent',
+    'background-image': `radial-gradient(${size}px at 50% 50%, white 0%, ${CONFIG.color} 10%, rgba(0,0,0,0) 50%)`
+  };
 
-    let props = {};
-
-    if (odd) {
-      props = {
-        left: '100%',
-        translateX: '-100%',
-      };
-    } else {
-      props = {
-        right: '100%',
-        translateX: '100%',
-      };
-    }
-
-    Velocity(element, props, {
-      loop: true,
-      duration: (i + 1) * CONFIG.interval,
-    });
+  CONFIG.ops.map(([corner, ...movements]) => {
+    stage(merge(base, corners[corner]), movements.map(dir => dirs[dir]));
   });
 };
 
