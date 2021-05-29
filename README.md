@@ -1,5 +1,7 @@
 # N Seconds to Each Point
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/18d119d6-521a-4b91-8369-28b7e96e4cc1/deploy-status)](https://app.netlify.com/sites/damonzucconi-n-seconds-to-each-point/deploys)
+
 ## Meta
 
 - **State**: production
