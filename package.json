@@ -15,7 +15,7 @@
     "parcel": "^2.0.0-beta.2"
   },
   "dependencies": {
-    "queryparams": "1.2.1",
+    "queryparams": "1.2.2",
     "velocity-animate": "^1.5.2",
     "velocity-ui-pack": "^1.2.2"
   }
